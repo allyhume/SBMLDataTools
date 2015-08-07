@@ -120,7 +120,10 @@ public class SBMLAddTimeCourseData {
             }
             
             // Get SBML out file
-            File sbmlOutFile = new File(commandLine.getOptionValue(OPTION_SBML_OUT));
+            File sbmlOutFile = null; 
+            if (commandLine.hasOption(OPTION_SBML_OUT)) {
+                sbmlOutFile = new File(commandLine.getOptionValue(OPTION_SBML_OUT));
+            }
 
             // CSV file out
             BufferedWriter csvOutWriter = null;
