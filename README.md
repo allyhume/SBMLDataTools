@@ -69,7 +69,7 @@ fitted curve with the orginal data shows how the curve fits the data:
 
 ![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
 
-We are happy with this is now it is time to create an SBML file containing this data. To create
+We are happy with this so now it is time to create an SBML file containing this data. To create
 a new SBML file containing the temprature data we must specify the name of the file to create
 using the `-sbmlOut` option:
 
@@ -110,7 +110,7 @@ The assignment rule is constructed using piecewise functions that each define a 
 that the parameter will be undefined outside the range of time values given in the input data.
 
 If you wish to add the external data to an existing SBML file then this is easily done by specifing the
-`sbmlIn` option. SBMLAddTimeCourseData will add to the existing SBML file but will create a new one
+`-sbmlIn` option. SBMLAddTimeCourseData will add to the existing SBML file but will create a new one
 with the additional content. The command line is:
 
 ```
@@ -118,7 +118,7 @@ java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn 
 ```
 
 If your CSV data is not separated by comma but instead by another character then this can be
-specified using the `-csvSeparator` option.  For example, if the '|' is used the command line
+specified using the `-csvSeparator` option.  For example, if  `|` is used as the separator then the command line
 would be:
 
 ```
