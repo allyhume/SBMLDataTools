@@ -61,7 +61,7 @@ curve data if you use the `-csvOut` option to specify this output file.  The `-c
 used to specifiy the raw data input file.  The command line to run this is:
 
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
 ```
 
 This produces a file (`fitted.txt`) that contains data points for the fitted curve. Plotting this
@@ -74,14 +74,14 @@ a new SBML file containing the temprature data we must specify the name of the f
 using the `-sbmlOut` option:
 
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml
 ```
 
 This will produce an SBML level 3 version 1 model. To choose different version and levels you can specify 
 the `-sbmlLevel` and `-sbmlVersion` options. For example, the following produces an SBML level 2 version 4
 file:
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -sbmlLevel 2 -sbmlVersion 4
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -sbmlLevel 2 -sbmlVersion 4
 ```
 
 Looking at the XML we can see that it contains our temperature data as a parameter:
@@ -114,7 +114,7 @@ If you wish to add the external data to an existing SBML file then this is easil
 with the additional content. The command line is:
 
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlIn mySbml.txt -sbmlOut myNewSbml.xml
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlIn mySbml.txt -sbmlOut myNewSbml.xml
 ```
 
 If your CSV data is not separated by comma but instead by another character then this can be
@@ -122,14 +122,14 @@ specified using the `-csvSeparator` option.  For example, if  `|` is used as the
 would be:
 
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator "|"  -sbmlOut mySbml.xml
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator "|"  -sbmlOut mySbml.xml
 ```
 
 If the separator is a tab character this can sometime be hard to type into the command line. In such cases you
 can define the separator using the word `TAB'.  For example,
 
 ```
-java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator TAB  -sbmlOut mySbml.xml
+java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator TAB  -sbmlOut mySbml.xml
 ```
 
 
