@@ -10,8 +10,10 @@ This project uses the following libraries:
 
 - [Apache Commons CLI] (https://commons.apache.org/proper/commons-cli/)
 - [Apache Commons Lang] (https://commons.apache.org/proper/commons-lang/)
+- [Apache Commons Math] (http://commons.apache.org/proper/commons-math/)
 - [JSBML] (http://sbml.org/Software/JSBML) 
 - [opencsv] (http://opencsv.sourceforge.net/)
+- [junit] (http://junit.org/)
 
 There is no need to download these yourself. They are packaged in the project jar download and are 
 pulled automatically from Maven repositories when the software is built.
