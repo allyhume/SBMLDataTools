@@ -76,14 +76,21 @@ public class SBMLTimeCourseDataHelper {
      * The lengths of the time and values arrays must be equal and must be greater or equal to 3.
      * <p>
      * The time values must be sorted in ascending order.
+     * <p>
+     * If fittedTimes and fittedValues are specified then the value of the fitted curve will be
+     * written to the fittedValues array for the time values in the associated fittedTimes array.
      * 
      * @param sbmlModel      SBML model to which the parameter is to be added
      * @param parameterName  name of the parameter to add
      * @param times          time values for time course data
      * @param values         data values for time course data
+     * @param fittedTimes    time values for output fitted data, or null
+     * @param fittedValues   array to which the output fitted data will be written, or null
      */
     public static void addParameterUsingCubicSpline(
-            Model sbmlModel, String parameterName, double[] times, double[] values) {
+            Model sbmlModel, String parameterName, 
+            double[] times, double[] values,
+            double[] fittedTimes, double[] fittedValues) {
         
         // Basic parameter checking. As this is an library best to give users errors that relate
         // to their usage rather than library internals.
@@ -97,6 +104,18 @@ public class SBMLTimeCourseDataHelper {
             throw new IllegalArgumentException("times parameter cannot be null");
         if (values == null) 
             throw new IllegalArgumentException("values parameter cannot be null");
+        if (fittedTimes == null && fittedValues != null) {
+            throw new IllegalArgumentException(
+                    "fittedValues parameter cannot be null if fittedTimes parameter is not null");
+        }
+        if (fittedTimes != null && fittedValues == null) {
+            throw new IllegalArgumentException(
+                    "fittedTimes parameter cannot be null if fittedValues parameter is not null");
+        }
+        if (fittedTimes != null && fittedTimes.length != fittedValues.length) {
+            throw new IllegalArgumentException(
+                    "fittedTimes and fittedValues parameters must be arrays of equal length");
+        }
         
         validateData(times, values);
         
@@ -106,6 +125,95 @@ public class SBMLTimeCourseDataHelper {
             
         // Add the data to the model
         SBMLTimeCourseDataHelper.addParameter(sbmlModel, parameterName, psf);
+        
+        // Create the fitted data
+        if (fittedTimes != null ) {
+            for (int i=0; i<fittedTimes.length; ++i) {
+                fittedValues[i] = psf.value(fittedTimes[i]);
+            }
+        }
+    }
+    
+    /**
+     * Adds the given time course data as a parameter to the SBML model.  The data will be
+     * represented in the model using a cubic spline.
+     * <p>
+     * The lengths of the time and values arrays must be equal and must be greater or equal to 3.
+     * <p>
+     * The time values must be sorted in ascending order.
+     * 
+     * @param sbmlModel      SBML model to which the parameter is to be added
+     * @param parameterName  name of the parameter to add
+     * @param times          time values for time course data
+     * @param values         data values for time course data
+     */
+    public static void addParameterUsingCubicSpline(
+            Model sbmlModel, String parameterName, double[] times, double[] values) {
+        
+        addParameterUsingCubicSpline(sbmlModel, parameterName, times, values, null, null);
+    }
+    
+    /**
+     * Adds the given time course data as a parameter to the SBML model.  The data will be
+     * represented in the model using a cubic spline.
+     * <p>
+     * The sizes of the time and values lists must be equal and must be greater than or equal to 3.
+     * <p>
+     * The time values must be sorted in ascending order.
+     * 
+     * @param sbmlModel      SBML model to which the parameter is to be added
+     * @param parameterName  name of the parameter to add
+     * @param times          time values for time course data
+     * @param values         data values for time course data
+     * @param fittedTimes    time values at which to compute the value of the fitted curve
+     * @param fittedValues   empty list to which the fitted values are added
+     */
+    public static void addParameterUsingCubicSpline(
+            Model sbmlModel, String parameterName, List<Double> times, List<Double> values,
+            List<Double> fittedTimes, List<Double> fittedValues) {
+        
+        // Basic parameter checking. As this is an library best to give users errors that relate
+        // to their usage rather than library internals.
+        if (sbmlModel == null) 
+            throw new IllegalArgumentException("sbmlModel parameter cannot be null");
+        if (parameterName == null) 
+            throw new IllegalArgumentException("parameterName parameter cannot be null");
+        if (parameterName.length() == 0) 
+            throw new IllegalArgumentException("parameterName parameter cannot be empty string");
+        if (times == null) 
+            throw new IllegalArgumentException("times parameter cannot be null");
+        if (values == null) 
+            throw new IllegalArgumentException("values parameter cannot be null");
+        if (fittedTimes == null && fittedValues != null) {
+            throw new IllegalArgumentException(
+                    "fittedValues parameter cannot be null if fittedTimes parameter is not null");
+        }
+        if (fittedTimes != null && fittedValues == null) {
+            throw new IllegalArgumentException(
+                    "fittedTimes parameter cannot be null if fittedValues parameter is not null");
+        }
+        if (fittedValues != null && fittedValues.size() != 0) {
+            throw new IllegalArgumentException(
+                    "fittedValues parameter must be an empty list");
+        }
+        
+        double[] fittedTimesPrimitiveArray = null;
+        double[] fittedValuesPrimitiveArray = null;
+
+        if (fittedTimes != null) {
+            fittedTimesPrimitiveArray = toPrimitiveArray(fittedTimes);
+            fittedValuesPrimitiveArray = new double[fittedTimesPrimitiveArray.length];
+        }
+        
+        addParameterUsingCubicSpline(
+                sbmlModel, parameterName, toPrimitiveArray(times), toPrimitiveArray(values),
+                fittedTimesPrimitiveArray, fittedValuesPrimitiveArray);
+        
+        if (fittedTimes != null) {
+            for (int i=0; i<fittedTimesPrimitiveArray.length; ++i) {
+                fittedValues.add(new Double(fittedValuesPrimitiveArray[i]));
+            }
+        }
     }
     
     /**

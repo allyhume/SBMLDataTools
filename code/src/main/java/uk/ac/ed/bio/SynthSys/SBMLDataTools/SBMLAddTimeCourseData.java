@@ -5,12 +5,15 @@
 package uk.ac.ed.bio.synthsys.SBMLDataTools;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +43,7 @@ public class SBMLAddTimeCourseData {
     
     // Strings for the various command line options
     private static final String OPTION_CSV_IN        = "csvIn";
+    private static final String OPTION_CSV_OUT       = "csvOut";
     private static final String OPTION_SBML_IN       = "sbmlIn";
     private static final String OPTION_SBML_LEVEL    = "sbmlLevel";
     private static final String OPTION_SBML_VERSION  = "sbmlVersion";
@@ -51,6 +55,7 @@ public class SBMLAddTimeCourseData {
     // Defaults for any SBML files we create
     private static final int    DEFAULT_SBML_LEVEL   = 3;
     private static final int    DEFAULT_SBML_VERSION = 1;
+    private static final int    DEFAULT_NUM_INTERVALS = 10;
     
 
     /**
@@ -86,9 +91,9 @@ public class SBMLAddTimeCourseData {
                 throw new ParseException(error);
             }
             
-            // sbmlOut is required
-            if (!commandLine.hasOption(OPTION_SBML_OUT)) {
-                throw new ParseException("Missing required option: sbmlOut");
+            // One of sbmlOut or csvOut is required
+            if (!commandLine.hasOption(OPTION_SBML_OUT) && !commandLine.hasOption(OPTION_CSV_OUT)) {
+                throw new ParseException("One of sbmlOut or csvOut arguments is required.");
             }
             
             // Get the CSV in file
@@ -116,14 +121,25 @@ public class SBMLAddTimeCourseData {
             
             // Get SBML out file
             File sbmlOutFile = new File(commandLine.getOptionValue(OPTION_SBML_OUT));
-            
+
+            // CSV file out
+            BufferedWriter csvOutWriter = null;
+            if (commandLine.hasOption(OPTION_CSV_OUT)) {
+                File csvFileOut = new File(commandLine.getOptionValue(OPTION_CSV_OUT));
+                csvOutWriter = new BufferedWriter(new FileWriter(csvFileOut));
+            }
+
             // Do the work
-            process(csvInReader, doc.getModel(), getSeparator(commandLine));
+            process(csvInReader, doc.getModel(), csvOutWriter, getSeparator(commandLine));
             
             csvInReader.close();
+            if (csvOutWriter != null) csvOutWriter.close();
             
-            // Write the file out
-            SBMLWriter.write(doc, sbmlOutFile, "SBMLAddTimeCourseData", "1.0");
+            // Write the SBML file out
+            if (commandLine.hasOption(OPTION_SBML_OUT)) {
+                SBMLWriter.write(doc, sbmlOutFile, "SBMLAddTimeCourseData", "1.0");
+            }
+            
         }
         catch( ParseException e) {
             System.err.println("Error: " + e.getLocalizedMessage());
@@ -150,11 +166,13 @@ public class SBMLAddTimeCourseData {
      * 
      * @param reader     csv data reader
      * @param model      SBML model
+     * @param writer     csv writer, or null
      * @param separator  csv data separator
      * 
      * @throws IOException if an unexpected IO error occurs.
      */
-    public static void process(Reader reader, Model model, char separator) throws IOException {
+    public static void process(Reader reader, Model model, BufferedWriter csvWriter, char separator) 
+            throws IOException {
         // Read CSV
         CSVReader csvReader = new CSVReader(reader, separator);
         List<String[]> csvData = csvReader.readAll();
@@ -164,6 +182,24 @@ public class SBMLAddTimeCourseData {
         
         // Get the number of columns
         int numCols = csvData.get(0).length;
+        
+        List<Double> fittedTimes = null;
+        List<List<Double>> fittedValues = new ArrayList<List<Double>>();
+
+        // If we are to output CSV data then calculate the times we output
+        if (csvWriter != null) {
+            fittedTimes  = new ArrayList<Double>();
+            for (int row=1; row<csvData.size()-1; ++row) {
+                double t1 = Double.parseDouble((csvData.get(row)[0]));
+                double t2 = Double.parseDouble((csvData.get(row+1)[0]));
+                double interval = (t2-t1)/(double) DEFAULT_NUM_INTERVALS;
+                for (int i=0; i<DEFAULT_NUM_INTERVALS; ++i) {
+                    fittedTimes.add(t1+interval*i);
+                }
+            }
+            // Add the last time
+            fittedTimes.add(Double.parseDouble((csvData.get(csvData.size()-1)[0])));
+        }
         
         // Assume time is column 0, process each other column in turn
         for (int col=1; col<numCols; ++col) {
@@ -180,9 +216,36 @@ public class SBMLAddTimeCourseData {
                 times.add(Double.parseDouble(rowData[0]));
                 values.add(Double.parseDouble(rowData[col]));
             }
+            
+            List<Double> fittedValuesForThisColumn = null;
+            if (fittedTimes != null) {
+                fittedValuesForThisColumn = new ArrayList<Double>();
+            }
+            fittedValues.add(fittedValuesForThisColumn);
                 
             // Add the data to the SBML model
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, paramName, times, values);
+            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(
+                    model, paramName, times, values, fittedTimes, fittedValuesForThisColumn);
+        }
+        
+        // Now we can write the CSV data
+        if (csvWriter != null) {
+            // Write the header
+            for (int col=0; col<numCols; ++col) {
+                if (col != 0) csvWriter.write(separator);
+                csvWriter.write(csvData.get(0)[col]);
+            }
+            csvWriter.newLine();
+            // Write the data
+            for (int row=0; row<fittedTimes.size(); ++row) {
+                // Time
+                csvWriter.write(Double.toString(fittedTimes.get(row)));
+                for (List<Double> fittedValuesForColumn : fittedValues) {
+                    csvWriter.write(separator);
+                    csvWriter.write(Double.toString(fittedValuesForColumn.get(row)));
+                }
+                csvWriter.newLine();
+            }
         }
     }
     
@@ -209,6 +272,12 @@ public class SBMLAddTimeCourseData {
                 "csv time course data file. Optional: if not specified stdin will be used.");
         options.addOption(option);
         
+        // csvOut
+        option = Option.builder(OPTION_CSV_OUT).hasArg(true).argName("file").build();
+        option.setDescription(
+                "csv file to write fitted data. Optional.");
+        options.addOption(option);
+
         // sbmlIn
         option = Option.builder(OPTION_SBML_IN).hasArg(true).argName("file").build();
         option.setDescription(
@@ -229,10 +298,10 @@ public class SBMLAddTimeCourseData {
                         "Default is " + DEFAULT_SBML_VERSION);
         options.addOption(option);
 
-        // sbmlOut - declaring as not required because if specify -help this is not required
+        // sbmlOut 
         option = Option.builder(OPTION_SBML_OUT).hasArg(true).argName("file").build();
         option.setDescription(
-                "Output SBML file. Required.");
+                "Output SBML file. Optional.");
         options.addOption(option);
         
         // csvSeparator
