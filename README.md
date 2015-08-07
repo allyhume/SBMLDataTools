@@ -1,8 +1,48 @@
 # SBMLDataTools
 
-This project contains tools to support adding external data to SBML models.
+This project contains tools to support adding external time course data to SBML models.
+By external data we mean data for quantities that are not part of the output of the 
+model but may be essential to the simulation of the model. 
+
+An example of external 
+data would be the temperature of the environment. A model could use this temperature 
+data to vary the rate of reactions but it is not a quantity the model can output. If
+the temperature data has been collected as part of an experiment then these tools allow that data to be 
+added to the SBML model so it be easily used in reaction rate equations.
 
 The software is available as either a command line application or as a Java library.
+
+If you find this software useful or wish to recommend changes or additions then please
+let me know.  
+
+Ally Hume
+
+Twitter: @ally.hume
+Email:   A.Hume@ed.ac.uk
+
+## Command line application
+
+The SBMLAddTimeCourseData tool adds time course data to an SBML file. The time course
+data is added as a parameter specifed by an assignment rule.  The assignment rules
+describes the data using a piecewise function obtained by fitting cubic splines to
+the data.
+
+![Raw data plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/rawTempPlot.png)
+
+![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
+
+http://www.erh.noaa.gov/pbz/hourlywx/hr_pit_15.06
+
+
+
+## Java library
+
+Documentation of the Java library will go here. Sorry it is not yet done. 
+
+I think the code has good JavaDoc so you can look at that. The class to be
+used as a library is uk.ac.ed.bio.synthsys.SBMLDataTools.SBMLTimeCourseDataHelper.
+The other classes are part of the command line user interface and are not
+considered part of the API (but they do show examples of how to use the API).
 
 
 ## Libraries
