@@ -4,7 +4,7 @@
   <groupId>uk.ac.ed.bio.SynthSys</groupId>
   <artifactId>SBMLDataTools</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0</version>
+  <version>0.0.0</version>
   <name>SBMLDataTools</name>
   <url>http://maven.apache.org</url>
 
