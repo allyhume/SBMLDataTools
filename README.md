@@ -64,12 +64,73 @@ used to specifiy the raw data input file.  The command line to run this is:
 java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
 ```
 
-
+This produces a file (`fitted.txt`) that contains data points for the fitted curve. Plotting this
+fitted curve with the orginal data shows how the curve fits the data:
 
 ![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
 
-http://www.erh.noaa.gov/pbz/hourlywx/hr_pit_15.06
+We are happy with this is now it is time to create an SBML file containing this data. To create
+a new SBML file containing the temprature data we must specify the name of the file to create
+using the `-sbmlOut` option:
 
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml
+```
+
+This will produce an SBML level 3 version 1 model. To choose different version and levels you can specify 
+the `-sbmlLevel` and `-sbmlVersion` options. For example, the following produces an SBML level 2 version 4
+file:
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -sbmlLevel 2 -sbmlVersion 4
+```
+
+Looking at the XML we can see that it contains our temperature data as a parameter:
+
+```
+<listOfParameters>
+  <parameter id="temp" constant="false" name="temp"/>
+</listOfParameters>
+```
+
+and also contains an assignment rule associated with this paramater:
+
+```
+    <listOfRules>
+      <assignmentRule variable="temp">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">        
+          <piecewise>
+             ...
+          </piecewise>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+```
+
+The assignment rule is constructed using piecewise functions that each define a portion of the curve.  Note
+that the parameter will be undefined outside the range of time values given in the input data.
+
+If you wish to add the external data to an existing SBML file then this is easily done by specifing the
+`sbmlIn` option. SBMLAddTimeCourseData will add to the existing SBML file but will create a new one
+with the additional content. The command line is:
+
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlIn mySbml.txt -sbmlOut myNewSbml.xml
+```
+
+If your CSV data is not separated by comma but instead by another character then this can be
+specified using the `-csvSeparator` option.  For example, if the '|' is used the command line
+would be:
+
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator "|"  -sbmlOut mySbml.xml
+```
+
+If the separator is a tab character this can sometime be hard to type into the command line. In such cases you
+can define the separator using the word `TAB'.  For example,
+
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator TAB  -sbmlOut mySbml.xml
+```
 
 
 ## Java library
