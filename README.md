@@ -23,7 +23,14 @@ Email:   A.Hume@ed.ac.uk
 
 ## Installation
 
-TODO
+For the command line version simply download ```SBMLDataTools-0.0.0-withDependencies.jar``` from the
+[Release] (https://github.com/allyhume/SBMLDataTools/releases) section of the project's GitHub page.
+
+This is a Java application so to run it you will need to install Java 1.6 or above.
+
+If you have Java installed and the jar file downloaded you simply run Java with reference to the
+jar file as shown in the documentation below.
+
 
 ## Command line application
 
