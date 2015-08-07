@@ -18,16 +18,52 @@ let me know.
 Ally Hume
 
 Twitter: @ally.hume
+
 Email:   A.Hume@ed.ac.uk
+
+## Installation
+
+TODO
 
 ## Command line application
 
 The SBMLAddTimeCourseData tool adds time course data to an SBML file. The time course
-data is added as a parameter specifed by an assignment rule.  The assignment rules
+data is added to SBML models as a parameter specifed by an assignment rule.  The assignment rules
 describes the data using a piecewise function obtained by fitting cubic splines to
 the data.
 
+Assume we have some temperature data that we wish to add to include in an SBML model. We first
+need this data in a file in CSV (comma separated values) format.  The first column of this
+data must be time values and the second column is the data values, in this case the temperature.
+The first row of the data must contain name for the columns. These names will be used as the
+parameter names in the SBML model.
+
+In our example data we have the temperature every hour so the first few rows of our data (data.txt) looks
+like:
+<pre>
+time,temp
+0,60  
+1,55  
+2,52  
+3,51  
+4,50  
+</pre>
+
+The full data set plot is:
+
 ![Raw data plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/rawTempPlot.png)
+
+Now we can use cubic spline interpolation to fit a smooth curve through these data points and
+write this curve into an SBML model.  First we can choose to see the just to check that we are
+happy with it. The SMBLAddTimeCourseData tool can output a data file that contains the fitted
+curve data if you use the -csvOut option to specify this output file.  The -csvIn option is
+used to specifiy the raw data input file.  The command line to run this is:
+
+<pre>
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
+</pre>
+
+
 
 ![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
 
