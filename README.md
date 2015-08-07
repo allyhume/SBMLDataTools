@@ -38,30 +38,31 @@ data must be time values and the second column is the data values, in this case 
 The first row of the data must contain name for the columns. These names will be used as the
 parameter names in the SBML model.
 
-In our example data we have the temperature every hour so the first few rows of our data (data.txt) looks
+In our example data we have the temperature every hour so the first few rows of our data (`data.txt`) looks
 like:
-<pre>
+
+```
 time,temp
 0,60  
 1,55  
 2,52  
 3,51  
 4,50  
-</pre>
+```
+
 
 The full data set plot is:
-
 ![Raw data plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/rawTempPlot.png)
 
 Now we can use cubic spline interpolation to fit a smooth curve through these data points and
 write this curve into an SBML model.  First we can choose to see the just to check that we are
 happy with it. The SMBLAddTimeCourseData tool can output a data file that contains the fitted
-curve data if you use the -csvOut option to specify this output file.  The -csvIn option is
+curve data if you use the `-csvOut` option to specify this output file.  The `-csvIn` option is
 used to specifiy the raw data input file.  The command line to run this is:
 
-<pre>
+```
 java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
-</pre>
+```
 
 
 
