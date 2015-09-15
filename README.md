@@ -23,7 +23,7 @@ Email:   A.Hume@ed.ac.uk
 
 ## Installation
 
-For the command line version simply download ```SBMLDataTools-0.0.0-withDependencies.jar``` from the
+For the command line version simply download ```SBMLDataTools-1.0.0-withDependencies.jar``` from the
 [Release] (https://github.com/allyhume/SBMLDataTools/releases) section of the project's GitHub page.
 
 This is a Java application so to run it you will need to install Java 1.6 or above.
@@ -36,7 +36,7 @@ jar file as shown in the documentation below.
 
 The SBMLAddTimeCourseData tool adds time course data to an SBML file. The time course
 data is added to SBML models as a parameter specifed by an assignment rule.  The assignment rules
-describes the data using a piecewise function obtained by fitting cubic splines to
+describes the data using a piecewise function obtained by fitting linear or cubic splines to
 the data.
 
 Assume we have some temperature data that we wish to add to include in an SBML model. We first
@@ -61,34 +61,34 @@ time,temp
 The full data set plot is:
 ![Raw data plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/rawTempPlot.png)
 
-Now we can use cubic spline interpolation to fit a smooth curve through these data points and
-write this curve into an SBML model.  First we can choose to see the just to check that we are
+Now we can use linear interpolation to fit lines through these data points and
+write these lines into an SBML model.  First we can choose to see the fitted data just to check that we are
 happy with it. The SMBLAddTimeCourseData tool can output a data file that contains the fitted
 curve data if you use the `-csvOut` option to specify this output file.  The `-csvIn` option is
-used to specifiy the raw data input file.  The command line to run this is:
+used to specify the raw data input file.  The command line to run this is:
 
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvOut fitted.txt
 ```
 
 This produces a file (`fitted.txt`) that contains data points for the fitted curve. Plotting this
-fitted curve with the orginal data shows how the curve fits the data:
+fitted lines with the original data shows how the lines fit the data:
 
-![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
+![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/linearFittedPlot.png)
 
 We are happy with this so now it is time to create an SBML file containing this data. To create
-a new SBML file containing the temprature data we must specify the name of the file to create
+a new SBML file containing the temperature data we must specify the name of the file to create
 using the `-sbmlOut` option:
 
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml
 ```
 
 This will produce an SBML level 3 version 1 model. To choose different version and levels you can specify 
 the `-sbmlLevel` and `-sbmlVersion` options. For example, the following produces an SBML level 2 version 4
 file:
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -sbmlLevel 2 -sbmlVersion 4
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -sbmlLevel 2 -sbmlVersion 4
 ```
 
 Looking at the XML we can see that it contains our temperature data as a parameter:
@@ -99,7 +99,7 @@ Looking at the XML we can see that it contains our temperature data as a paramet
 </listOfParameters>
 ```
 
-and also contains an assignment rule associated with this paramater:
+and also contains an assignment rule associated with this parameter:
 
 ```
     <listOfRules>
@@ -116,27 +116,38 @@ and also contains an assignment rule associated with this paramater:
 The assignment rule is constructed using piecewise functions that each define a portion of the curve.  Note
 that the parameter will be undefined outside the range of time values given in the input data.
 
-If you wish to add the external data to an existing SBML file then this is easily done by specifing the
-`-sbmlIn` option. SBMLAddTimeCourseData will add to the existing SBML file but will create a new one
+If you wish to add the external data to an existing SBML file then this is easily done by specifying the
+`-sbmlIn` option. SBMLAddTimeCourseData will not change the existing SBML file but will create a new one
 with the additional content. The command line is:
 
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlIn mySbml.txt -sbmlOut myNewSbml.xml
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlIn mySbml.txt -sbmlOut myNewSbml.xml
 ```
+
+As well as linear interpolation it is also possible to fit cubic splines to the data to produce a much smoother curve. To
+do this you must specify the '-interpolator cubic' command line option. For example:
+
+```
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -sbmlOut mySbml.xml -interpolator cubic
+```
+
+Fitting a cubic spline to our example data produces the following curve:
+
+![Fitted plot](https://raw.github.com/allyhume/SBMLDataTools/master/images/fittedPlot.png)
 
 If your CSV data is not separated by comma but instead by another character then this can be
 specified using the `-csvSeparator` option.  For example, if  `|` is used as the separator then the command line
 would be:
 
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator "|"  -sbmlOut mySbml.xml
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator "|"  -sbmlOut mySbml.xml
 ```
 
 If the separator is a tab character this can sometime be hard to type into the command line. In such cases you
 can define the separator using the word `TAB'.  For example,
 
 ```
-java -jar SBMLDataTools-0.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator TAB  -sbmlOut mySbml.xml
+java -jar SBMLDataTools-1.0.0-withDependencies.jar SBMLAddTimeCourseData -csvIn data.txt -csvSeparator TAB  -sbmlOut mySbml.xml
 ```
 
 
