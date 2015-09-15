@@ -2,12 +2,13 @@
  * For license details see associated LICENSE.txt file.
  */
 
-package uk.ac.ed.bio.synthsys.SBMLDataTools;
+package uk.ac.ed.bio.SynthSys.SBMLDataTools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.junit.Test;
 import org.sbml.jsbml.ASTNode;
 import org.sbml.jsbml.AssignmentRule;
@@ -16,7 +17,7 @@ import org.sbml.jsbml.Parameter;
 import org.sbml.jsbml.Rule;
 import org.sbml.jsbml.SBMLDocument;
 
-import uk.ac.ed.bio.synthsys.SBMLDataTools.SBMLTimeCourseDataHelper;
+import uk.ac.ed.bio.SynthSys.SBMLDataTools.SBMLTimeCourseDataHelper;
 
 /**
  * Test class for SBMLTimeCourseDataHelper
@@ -33,13 +34,15 @@ public class SBMLTimeCourseDataHelperTest {
      * Tests that the correct exception is produced when passing a NULL model.
      */
     @Test
-    public void addParameterUsingCubicSplineArrayVersionNullModel() {
+    public void addParameterArrayVersionNullModel() {
 
         boolean caughtException = false;
         setSinData();
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(null, "myParam", _times, _values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    null, "myParam", _times, _values, 
+                    new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae)
         {
@@ -55,7 +58,7 @@ public class SBMLTimeCourseDataHelperTest {
      * Tests that the correct exception is produced when passing a NULL parameter name.
      */
     @Test
-    public void addParameterUsingCubicSplineArrayVersionNullParameterName() {
+    public void addParameterArrayVersionNullParameterName() {
 
         boolean caughtException = false;
         setSinData();
@@ -63,7 +66,8 @@ public class SBMLTimeCourseDataHelperTest {
         Model model = doc.createModel("test_model");
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, null, _times, _values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, null, _times, _values, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae)
         {
@@ -78,7 +82,7 @@ public class SBMLTimeCourseDataHelperTest {
      * Tests that the correct exception is produced when passing NULL times.
      */
     @Test
-    public void addParameterUsingCubicSplineArrayVersionNullTimes() {
+    public void addParameterArrayVersionNullTimes() {
 
         boolean caughtException = false;
         setSinData();
@@ -86,7 +90,8 @@ public class SBMLTimeCourseDataHelperTest {
         Model model = doc.createModel("test_model");
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", null, _values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, "myParam", null, _values, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae)
         {
@@ -101,7 +106,7 @@ public class SBMLTimeCourseDataHelperTest {
      * Tests that the correct exception is produced when passing NULL values.
      */
     @Test
-    public void addParameterUsingCubicSplineArrayVersionNullValues() {
+    public void addParameterArrayVersionNullValues() {
 
         boolean caughtException = false;
         setSinData();
@@ -109,7 +114,8 @@ public class SBMLTimeCourseDataHelperTest {
         Model model = doc.createModel("test_model");
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", _times, null);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, "myParam", _times, null, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae)
         {
@@ -125,7 +131,7 @@ public class SBMLTimeCourseDataHelperTest {
      * different lengths.
      */
     @Test
-    public void addParameterUsingCubicSplineArrayVersionDifferentLengthArrays() {
+    public void addParameterArrayVersionDifferentLengthArrays() {
         boolean caughtException = false;
         setSinData();
         SBMLDocument doc = new SBMLDocument(3, 1);
@@ -137,7 +143,8 @@ public class SBMLTimeCourseDataHelperTest {
         values[values.length-1] = 0.0;
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", _times, values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, "myParam", _times, values, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae)
         {
@@ -168,7 +175,8 @@ public class SBMLTimeCourseDataHelperTest {
         Model model = doc.createModel("test_model");
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", _times, _values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, "myParam", _times, _values, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae) {
             caughtException = true;
@@ -198,7 +206,8 @@ public class SBMLTimeCourseDataHelperTest {
         Model model = doc.createModel("test_model");
         
         try {
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", _times, _values);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, "myParam", _times, _values, new PolynomialInterpolator(new SplineInterpolator()));
         }
         catch(IllegalArgumentException iae) {
             caughtException = true;
@@ -219,7 +228,8 @@ public class SBMLTimeCourseDataHelperTest {
         SBMLDocument doc = new SBMLDocument(3, 1);
         Model model = doc.createModel("test_model");
 
-        SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(model, "myParam", _times, _values);
+        SBMLTimeCourseDataHelper.addParameter(
+                model, "myParam", _times, _values, new PolynomialInterpolator(new SplineInterpolator()));
         
         // Model must now have a parameter called myParam with specific properties
         assertEquals("Model must have one parameter", 1, model.getParameterCount());

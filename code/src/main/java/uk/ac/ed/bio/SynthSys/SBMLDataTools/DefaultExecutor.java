@@ -1,7 +1,7 @@
 /**
  * For license details see associated LICENSE.txt file.
  */
-package uk.ac.ed.bio.synthsys.SBMLDataTools;
+package uk.ac.ed.bio.SynthSys.SBMLDataTools;
 
 import java.io.IOException;
 

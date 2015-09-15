@@ -2,7 +2,7 @@
  * For license details see associated LICENSE.txt file.
  */
 
-package uk.ac.ed.bio.synthsys.SBMLDataTools;
+package uk.ac.ed.bio.SynthSys.SBMLDataTools;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,7 +13,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +25,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.sbml.jsbml.Model;
 import org.sbml.jsbml.SBMLDocument;
 import org.sbml.jsbml.SBMLReader;
@@ -42,20 +43,22 @@ import com.opencsv.CSVReader;
 public class SBMLAddTimeCourseData {
     
     // Strings for the various command line options
-    private static final String OPTION_CSV_IN        = "csvIn";
-    private static final String OPTION_CSV_OUT       = "csvOut";
-    private static final String OPTION_SBML_IN       = "sbmlIn";
-    private static final String OPTION_SBML_LEVEL    = "sbmlLevel";
-    private static final String OPTION_SBML_VERSION  = "sbmlVersion";
-    private static final String OPTION_SBML_OUT      = "sbmlOut";
-    private static final String OPTION_HELP          = "help";
-    private static final String OPTION_CSV_SEPARATOR = "csvSeparator";
-    private static final String PROGRAM_NAME         = "SBMLAddTimeCourseData";
+    private static final String OPTION_CSV_IN           = "csvIn";
+    private static final String OPTION_CSV_OUT          = "csvOut";
+    private static final String OPTION_SBML_IN          = "sbmlIn";
+    private static final String OPTION_SBML_LEVEL       = "sbmlLevel";
+    private static final String OPTION_SBML_VERSION     = "sbmlVersion";
+    private static final String OPTION_SBML_OUT         = "sbmlOut";
+    private static final String OPTION_HELP             = "help";
+    private static final String OPTION_CSV_SEPARATOR    = "csvSeparator";
+    private static final String OPTION_INTERPOLATOR     = "interpolator";
+    private static final String PROGRAM_NAME            = "SBMLAddTimeCourseData";
     
     // Defaults for any SBML files we create
     private static final int    DEFAULT_SBML_LEVEL   = 3;
     private static final int    DEFAULT_SBML_VERSION = 1;
     private static final int    DEFAULT_NUM_INTERVALS = 10;
+    private static final String DEFAULT_INTERPOLATOR  = "linear";
     
 
     /**
@@ -131,9 +134,26 @@ public class SBMLAddTimeCourseData {
                 File csvFileOut = new File(commandLine.getOptionValue(OPTION_CSV_OUT));
                 csvOutWriter = new BufferedWriter(new FileWriter(csvFileOut));
             }
+            
+            // Interpolator
+            String interpolatorName = DEFAULT_INTERPOLATOR;
+            Interpolator interpolator = null;
+            if (commandLine.hasOption(OPTION_INTERPOLATOR)) {
+                interpolatorName = commandLine.getOptionValue(OPTION_INTERPOLATOR);
+            }
+            // Map interpolator to appropriate class instance
+            if (interpolatorName.equalsIgnoreCase("cubic")) {
+                interpolator = new PolynomialInterpolator(new SplineInterpolator());
+            }
+            else if (interpolatorName.equalsIgnoreCase("linear")) {
+                interpolator = new PolynomialInterpolator(new LinearInterpolator());
+            }
+            else {
+                throw new ParseException("Unknown interpolator: " + interpolatorName);
+            }
 
             // Do the work
-            process(csvInReader, doc.getModel(), csvOutWriter, getSeparator(commandLine));
+            process(csvInReader, doc.getModel(), csvOutWriter, getSeparator(commandLine), interpolator);
             
             csvInReader.close();
             if (csvOutWriter != null) csvOutWriter.close();
@@ -167,14 +187,17 @@ public class SBMLAddTimeCourseData {
      * Reads the CSV data from the given reader, validates it and writes it into the SBML model
      * as a parameter with an assignment rule.
      * 
-     * @param reader     csv data reader
-     * @param model      SBML model
-     * @param writer     csv writer, or null
-     * @param separator  csv data separator
+     * @param reader       csv data reader
+     * @param model        SBML model
+     * @param writer       csv writer, or null
+     * @param separator    csv data separator
+     * @param interpolator interpolator
      * 
      * @throws IOException if an unexpected IO error occurs.
      */
-    public static void process(Reader reader, Model model, BufferedWriter csvWriter, char separator) 
+    public static void process(
+            Reader reader, Model model, BufferedWriter csvWriter, char separator, 
+            Interpolator interpolator) 
             throws IOException {
         // Read CSV
         CSVReader csvReader = new CSVReader(reader, separator);
@@ -208,7 +231,7 @@ public class SBMLAddTimeCourseData {
         for (int col=1; col<numCols; ++col) {
 
             // Assume row 0 is a header
-            String paramName = csvData.get(0)[col];
+            String paramName = csvData.get(0)[col].trim();
 
             // Collect the times and values for this column
             List<Double> times  = new ArrayList<Double>();
@@ -227,8 +250,9 @@ public class SBMLAddTimeCourseData {
             fittedValues.add(fittedValuesForThisColumn);
                 
             // Add the data to the SBML model
-            SBMLTimeCourseDataHelper.addParameterUsingCubicSpline(
-                    model, paramName, times, values, fittedTimes, fittedValuesForThisColumn);
+            SBMLTimeCourseDataHelper.addParameter(
+                    model, paramName, times, values, fittedTimes, fittedValuesForThisColumn,
+                    interpolator);
         }
         
         // Now we can write the CSV data
@@ -315,6 +339,13 @@ public class SBMLAddTimeCourseData {
                         "Optional. Default is comma ','.");
         options.addOption(option);
 
+        // interpolator
+        option = Option.builder(OPTION_INTERPOLATOR).hasArg(true).argName("interpolator").build();
+        option.setDescription(
+                "Interpolator to use: one of 'linear' or 'cubic' " + 
+                        "Optional. Default is linear.");
+        options.addOption(option);
+        
         return options;
     }
     
